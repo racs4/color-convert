@@ -26,7 +26,8 @@ const convert = {
 	ansi256: {channels: 1, labels: ['ansi256']},
 	hcg: {channels: 3, labels: ['h', 'c', 'g']},
 	apple: {channels: 3, labels: ['r16', 'g16', 'b16']},
-	gray: {channels: 1, labels: ['gray']}
+	gray: {channels: 1, labels: ['gray']},
+	luv: {channels: 3, labels: 'luv'}
 };
 
 module.exports = convert;
@@ -840,4 +841,68 @@ convert.gray.hex = function (gray) {
 convert.rgb.gray = function (rgb) {
 	const val = (rgb[0] + rgb[1] + rgb[2]) / 3;
 	return [val / 255 * 100];
+};
+
+// From http://www.brucelindbloom.com/index.html?Eqn_Luv_to_XYZ.html
+convert.luv.xyz = function (luv) {
+	// D65 white in XYZ
+	const whiteRef = [95.047, 100.00, 108.883];
+
+	const eps = 0.008856;
+	const k = 903.3;
+
+	const getU0 = ([X, Y, Z]) => 4 * X / (X + 15 * Y + 3 * Z);
+	const getV0 = ([X, Y, Z]) => 9 * Y / (X + 15 * Y + 3 * Z);
+
+	const u0 = getU0(whiteRef);
+	const v0 = getV0(whiteRef);
+
+	const L = luv[0];
+	const u = luv[1];
+	const v = luv[2];
+	const fmt = n => isNaN(n) || n < 0 ? 0 : n;
+
+	const Y = fmt(
+		L > k * eps ? ((L + 16) / 116) ** 3 : L / k
+	);
+
+	const a = (1 / 3) * (((52 * L) / (u + 13 * L * u0)) - 1);
+	const b = -5 * Y;
+	const c = -1 / 3;
+	const d = Y * (((39 * L) / (v + 13 * L * v0)) - 5);
+
+	const X = fmt((d - b) / (a - c));
+	const Z = fmt(X * a + b);
+
+	return [X, Y, Z].map(x => x * 100);
+};
+
+convert.xyz.luv = function (xyz) {
+	// D65 white in XYZ
+	const whiteRef = [95.047, 100.00, 108.883];
+
+	const eps = 0.008856;
+	const k = 903.3;
+
+	const X = xyz[0];
+	const Y = xyz[1];
+	const Z = xyz[2];
+
+	const getUp = ([X, Y, Z]) => 4 * X / (X + 15 * Y + 3 * Z);
+	const getVp = ([X, Y, Z]) => 9 * Y / (X + 15 * Y + 3 * Z);
+
+	const yr = Y / whiteRef[1];
+	const up = getUp([X, Y, Z]);
+	const vp = getVp([X, Y, Z]);
+	const upr = getUp(whiteRef);
+	const vpr = getVp(whiteRef);
+
+	const fmt = n => isNaN(n) || n < 0 ? 0 : n;
+
+	const L = fmt(yr > eps ? 116 * (yr ** (1 / 3)) - 16 : k * yr);
+
+	const u = fmt(13 * L * (up - upr));
+	const v = fmt(13 * L * (vp - vpr));
+
+	return [L, u, v];
 };

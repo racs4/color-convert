@@ -238,3 +238,12 @@ assert.deepStrictEqual(convert.rgb.gray([0, 128, 255]), [50]);
 
 // https://github.com/Qix-/color-convert/issues/74
 assert.deepStrictEqual(convert.rgb.ansi256(40, 38, 41), 235);
+
+// Basic luv tests
+// Results from http://www.brucelindbloom.com/index.html?ColorCalculator.html
+assert.deepStrictEqual(convert.luv.xyz([100, 0, 0]), [95, 100, 109]); // Because of rounding
+assert.deepStrictEqual(convert.xyz.luv([95, 100, 109]), [100, 0, 0]); // Because of rounding
+assert.deepStrictEqual(convert.luv.xyz.raw([100, 0, 0]), ([95.047, 100, 108.88299999999988]));
+assert.deepStrictEqual(convert.luv.xyz([50, 10, 20]), [18, 18, 13]);
+assert.deepStrictEqual(convert.luv.xyz([80, 10, 20]), [54, 57, 47]);
+assert.deepStrictEqual(convert.xyz.luv.raw([33, 33, 33]), [64.16090946812974, 10.581698380114185, 4.460645994694861]);
