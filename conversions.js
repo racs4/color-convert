@@ -27,7 +27,8 @@ const convert = {
 	hcg: {channels: 3, labels: ['h', 'c', 'g']},
 	apple: {channels: 3, labels: ['r16', 'g16', 'b16']},
 	gray: {channels: 1, labels: ['gray']},
-	luv: {channels: 3, labels: 'luv'}
+	luv: {channels: 3, labels: 'luv'},
+	xyY: {channels: 3, labels: 'xyY'}
 };
 
 module.exports = convert;
@@ -905,4 +906,24 @@ convert.xyz.luv = function (xyz) {
 	const v = 13 * L * (vp - vpr);
 
 	return [L, u, v];
+};
+
+// From http://www.brucelindbloom.com/
+convert.xyY.xyz = function (xyY) {
+	const [x, y, Y] = xyY;
+	if (y === 0) {
+		return [0, 0, 0];
+	}
+
+	const X = (x * Y) / y;
+	const Z = ((1 - x - y) * Y) / y;
+	return [X, Y, Z];
+};
+
+// From http://www.brucelindbloom.com/
+convert.xyz.xyY = function (xyz) {
+	const [X, Y, Z] = xyz;
+	const x = X / (X + Y + Z);
+	const y = Y / (X + Y + Z);
+	return [x, y, Y];
 };

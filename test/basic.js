@@ -247,3 +247,8 @@ assert.deepStrictEqual(convert.luv.xyz.raw([100, 0, 0]), ([95.047, 100, 108.8829
 assert.deepStrictEqual(convert.luv.xyz([50, 10, 20]), [18, 18, 13]);
 assert.deepStrictEqual(convert.luv.xyz([80, 10, 20]), [54, 57, 47]);
 assert.deepStrictEqual(convert.xyz.luv.raw([33, 33, 33]), [64.16090946812974, 10.581698380114185, 4.460645994694861]);
+
+// Basic luv tests
+// Results from http://www.brucelindbloom.com/index.html?ColorCalculator.html
+assert.deepStrictEqual(convert.xyY.xyz([0.34, 0.35, 18]), [17, 18, 16]); // Because of rounding
+assert.deepStrictEqual(convert.xyY.xyz.raw([0.34, 0.35, 18]), [17.485714285714288, 18, 15.942857142857141]); // Because of rounding
