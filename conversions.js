@@ -890,8 +890,8 @@ convert.luv['lu\'v\''] = function (luv) {
 	const u = luv[1];
 	const v = luv[2];
 
-	const up = u / 13 * L + upr;
-	const vp = v / 13 * L + vpr;
+	const up = u / (13 * L) + upr;
+	const vp = v / (13 * L) + vpr;
 
 	return [L, up, vp];
 };
