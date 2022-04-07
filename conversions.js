@@ -28,6 +28,7 @@ const convert = {
 	apple: {channels: 3, labels: ['r16', 'g16', 'b16']},
 	gray: {channels: 1, labels: ['gray']},
 	luv: {channels: 3, labels: 'luv'},
+	'lu\'v\'': {channels: 3, labels: ['l', 'u\'', 'v\'']},
 	xyY: {channels: 3, labels: 'xyY'}
 };
 
@@ -529,8 +530,8 @@ convert.rgb.ansi16 = function (args, saturation = null) {
 
 	let ansi = 30
 		+ ((Math.round(b / 255) << 2)
-		| (Math.round(g / 255) << 1)
-		| Math.round(r / 255));
+			| (Math.round(g / 255) << 1)
+			| Math.round(r / 255));
 
 	if (value === 2) {
 		ansi += 60;
@@ -878,6 +879,23 @@ convert.luv.xyz = function (luv) {
 	return [X, Y, Z].map(x => x * 100);
 };
 
+convert.luv['lu\'v\''] = function (luv) {
+	const whiteRef = [95.047, 100.00, 108.883];
+	const getUp = ([X, Y, Z]) => 4 * X / (X + 15 * Y + 3 * Z);
+	const getVp = ([X, Y, Z]) => 9 * Y / (X + 15 * Y + 3 * Z);
+	const upr = getUp(whiteRef);
+	const vpr = getVp(whiteRef);
+
+	const L = luv[0];
+	const u = luv[1];
+	const v = luv[2];
+
+	const up = u / 13 * L + upr;
+	const vp = v / 13 * L + vpr;
+
+	return [L, up, vp];
+};
+
 convert.xyz.luv = function (xyz) {
 	// D65 white in XYZ
 	const whiteRef = [95.047, 100.00, 108.883];
@@ -901,6 +919,25 @@ convert.xyz.luv = function (xyz) {
 	const fmt = n => isNaN(n) || n < 0 ? 0 : n;
 
 	const L = fmt(yr > eps ? 116 * (yr ** (1 / 3)) - 16 : k * yr);
+
+	const u = 13 * L * (up - upr);
+	const v = 13 * L * (vp - vpr);
+
+	return [L, u, v];
+};
+
+convert['lu\'v\''].luv = function (luv) {
+	const whiteRef = [95.047, 100.00, 108.883];
+
+	const L = luv[0];
+	const up = luv[1];
+	const vp = luv[2];
+
+	const getUp = ([X, Y, Z]) => 4 * X / (X + 15 * Y + 3 * Z);
+	const getVp = ([X, Y, Z]) => 9 * Y / (X + 15 * Y + 3 * Z);
+
+	const upr = getUp(whiteRef);
+	const vpr = getVp(whiteRef);
 
 	const u = 13 * L * (up - upr);
 	const v = 13 * L * (vp - vpr);
